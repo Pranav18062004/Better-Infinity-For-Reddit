@@ -41,9 +41,20 @@ abstract class NetworkModule {
         boolean proxyEnabled = mProxySharedPreferences.getBoolean(SharedPreferencesUtils.PROXY_ENABLED, false);
 
         var builder =  new OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS);
+            .connectTimeout(60, TimeUnit.SECONDS)  // Increased for VPN compatibility
+            .readTimeout(60, TimeUnit.SECONDS)     // Increased for VPN compatibility
+            .writeTimeout(60, TimeUnit.SECONDS)    // Increased for VPN compatibility
+            .retryOnConnectionFailure(true)        // Enable retry for VPN connection issues
+            .addInterceptor(chain -> {
+                // Add headers for better VPN/DNS compatibility
+                Request original = chain.request();
+                Request.Builder requestBuilder = original.newBuilder()
+                        .header("User-Agent", APIUtils.USER_AGENT)
+                        .header("Accept", "*/*")
+                        .header("Accept-Encoding", "gzip, deflate")
+                        .header("Connection", "keep-alive");
+                return chain.proceed(requestBuilder.build());
+            });
 
         if (proxyEnabled) {
             Proxy.Type proxyType = Proxy.Type.valueOf(mProxySharedPreferences.getString(SharedPreferencesUtils.PROXY_TYPE, "HTTP"));
@@ -73,7 +84,8 @@ abstract class NetworkModule {
 
     @Provides
     static ConnectionPool provideConnectionPool() {
-        return new ConnectionPool(0, 1, TimeUnit.NANOSECONDS);
+        // More VPN-friendly connection pool settings
+        return new ConnectionPool(5, 5, TimeUnit.MINUTES);
     }
 
     @Provides

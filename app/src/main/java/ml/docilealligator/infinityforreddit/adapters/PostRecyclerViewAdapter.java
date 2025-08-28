@@ -2606,7 +2606,10 @@ public class PostRecyclerViewAdapter extends PagingDataAdapter<Post, RecyclerVie
             previewImageView.setOnClickListener(view -> fullscreenButton.performClick());
 
             videoPlayer.setOnClickListener(view -> {
-                if (mEasierToWatchInFullScreen && videoPlayer.isControllerFullyVisible()) {
+                Post post = getPost();
+                // Don't auto-open fullscreen for GIFs converted to VIDEO_TYPE - let users interact with controls
+                boolean isConvertedGif = post != null && post.isOriginallyGif();
+                if (mEasierToWatchInFullScreen && videoPlayer.isControllerFullyVisible() && !isConvertedGif) {
                     fullscreenButton.performClick();
                 }
             });

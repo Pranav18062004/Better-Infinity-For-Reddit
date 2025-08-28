@@ -1854,7 +1854,9 @@ public class PostDetailRecyclerViewAdapter extends RecyclerView.Adapter<Recycler
 
             previewImageView.setOnClickListener(view -> fullscreenButton.performClick());
             playerView.setOnClickListener(view -> {
-                if (mEasierToWatchInFullScreen && playerView.isControllerFullyVisible()) {
+                // Don't auto-open fullscreen for GIFs converted to VIDEO_TYPE - let users interact with controls
+                boolean isConvertedGif = mPost != null && mPost.isOriginallyGif();
+                if (mEasierToWatchInFullScreen && playerView.isControllerFullyVisible() && !isConvertedGif) {
                     fullscreenButton.performClick();
                 }
             });

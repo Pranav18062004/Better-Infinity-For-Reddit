@@ -347,13 +347,13 @@ public class ParsePost {
                         String authority = uri.getAuthority();
 
                         if (authority != null) {
-                            /*if (authority.contains("redgifs.com")) {
+                            if (authority.contains("redgifs.com")) {
                                 String redgifsId = url.substring(url.lastIndexOf("/") + 1).toLowerCase();
                                 post.setPostType(Post.VIDEO_TYPE);
                                 post.setIsRedgifs(true);
                                 post.setVideoUrl(url);
                                 post.setRedgifsId(redgifsId);
-                            } else */
+                            } else
                             if (authority.equals("streamable.com")) {
                                 String shortCode = url.substring(url.lastIndexOf("/") + 1);
                                 post.setPostType(Post.VIDEO_TYPE);
@@ -464,8 +464,18 @@ public class ParsePost {
                         }
                         post.setPreviews(previews);
                     } else if (path.endsWith(".gif")) {
-                        //Gif post
-                        int postType = Post.GIF_TYPE;
+                        //Gif post - check if it has MP4 variant for better controls
+                        String mp4Variant = null;
+                        try {
+                            mp4Variant = data.getJSONObject(JSONUtils.PREVIEW_KEY)
+                                    .getJSONArray(JSONUtils.IMAGES_KEY).getJSONObject(0)
+                                    .getJSONObject(JSONUtils.VARIANTS_KEY).getJSONObject(JSONUtils.MP4_KEY)
+                                    .getJSONObject(JSONUtils.SOURCE_KEY).getString(JSONUtils.URL_KEY);
+                        } catch (Exception ignore) {}
+
+                        // Use VIDEO_TYPE for GIFs with MP4 variants to enable full video controls
+                        int postType = (mp4Variant != null && !mp4Variant.isEmpty()) ? Post.VIDEO_TYPE : Post.GIF_TYPE;
+
                         post = new Post(id, fullName, subredditName, subredditNamePrefixed, author,
                                 authorFlair, authorFlairHTML, postTimeMillis, title, url, permalink, score,
                                 postType, voteType, nComments, upvoteRatio, flair,
@@ -474,17 +484,17 @@ public class ParsePost {
                                 suggestedSort);
 
                         post.setPreviews(previews);
-                        post.setVideoUrl(url);
 
-                        try {
-                            String mp4Variant = data.getJSONObject(JSONUtils.PREVIEW_KEY)
-                                    .getJSONArray(JSONUtils.IMAGES_KEY).getJSONObject(0)
-                                    .getJSONObject(JSONUtils.VARIANTS_KEY).getJSONObject(JSONUtils.MP4_KEY)
-                                    .getJSONObject(JSONUtils.SOURCE_KEY).getString(JSONUtils.URL_KEY);
-                            if (!mp4Variant.isEmpty()) {
-                                post.setMp4Variant(mp4Variant);
-                            }
-                        } catch (Exception ignore) {}
+                        if (mp4Variant != null && !mp4Variant.isEmpty()) {
+                            post.setMp4Variant(mp4Variant);
+                            // Mark this as originally a GIF for special handling
+                            post.setIsOriginallyGif(true);
+                            // For GIFs with MP4 variants, use the MP4 URL for better playback
+                            post.setVideoUrl(mp4Variant);
+                            post.setVideoDownloadUrl(mp4Variant);
+                        } else {
+                            post.setVideoUrl(url);
+                        }
                     } else if (uri.getAuthority().contains("imgur.com") && (path.endsWith(".gifv") || path.endsWith(".mp4"))) {
                         // Imgur gifv/mp4
                         int postType = Post.VIDEO_TYPE;
@@ -551,13 +561,13 @@ public class ParsePost {
                             String authority = uri.getAuthority();
 
                             if (authority != null) {
-                                /*if (authority.contains("redgifs.com")) {
+                                if (authority.contains("redgifs.com")) {
                                     String redgifsId = url.substring(url.lastIndexOf("/") + 1).toLowerCase();
                                     post.setPostType(Post.VIDEO_TYPE);
                                     post.setIsRedgifs(true);
                                     post.setVideoUrl(url);
                                     post.setRedgifsId(redgifsId);
-                                } else*/
+                                } else
                                 if (authority.equals("streamable.com")) {
                                     String shortCode = url.substring(url.lastIndexOf("/") + 1);
                                     post.setPostType(Post.VIDEO_TYPE);
@@ -623,13 +633,13 @@ public class ParsePost {
                     String authority = uri.getAuthority();
 
                     if (authority != null) {
-                        /*if (authority.contains("redgifs.com")) {
+                        if (authority.contains("redgifs.com")) {
                             String redgifsId = url.substring(url.lastIndexOf("/") + 1).toLowerCase();
                             post.setPostType(Post.VIDEO_TYPE);
                             post.setIsRedgifs(true);
                             post.setVideoUrl(url);
                             post.setRedgifsId(redgifsId);
-                        } else*/
+                        } else
                         if (authority.equals("streamable.com")) {
                             String shortCode = url.substring(url.lastIndexOf("/") + 1);
                             post.setPostType(Post.VIDEO_TYPE);
@@ -646,7 +656,7 @@ public class ParsePost {
             try {
                 String authority = uri.getAuthority();
                 if (authority != null) {
-                    /*if (authority.contains("redgifs.com")) {
+                    if (authority.contains("redgifs.com")) {
                         String redgifsId = url.substring(url.lastIndexOf("/") + 1);
                         if (redgifsId.contains("-")) {
                             redgifsId = redgifsId.substring(0, redgifsId.indexOf('-'));
@@ -654,7 +664,7 @@ public class ParsePost {
                         post.setIsRedgifs(true);
                         post.setVideoUrl(url);
                         post.setRedgifsId(redgifsId.toLowerCase());
-                    } else*/
+                    } else
                     if (authority.equals("streamable.com")) {
                         String shortCode = url.substring(url.lastIndexOf("/") + 1);
                         post.setPostType(Post.VIDEO_TYPE);
@@ -722,13 +732,13 @@ public class ParsePost {
                 String authority = uri.getAuthority();
 
                 if (authority != null) {
-                    /*if (authority.contains("redgifs.com")) {
+                    if (authority.contains("redgifs.com")) {
                         String redgifsId = url.substring(url.lastIndexOf("/") + 1).toLowerCase();
                         post.setPostType(Post.VIDEO_TYPE);
                         post.setIsRedgifs(true);
                         post.setVideoUrl(url);
                         post.setRedgifsId(redgifsId);
-                    } else*/
+                    } else
                     if (authority.equals("streamable.com")) {
                         String shortCode = url.substring(url.lastIndexOf("/") + 1);
                         post.setPostType(Post.VIDEO_TYPE);

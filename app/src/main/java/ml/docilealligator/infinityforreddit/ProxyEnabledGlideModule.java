@@ -25,9 +25,10 @@ public class ProxyEnabledGlideModule extends AppGlideModule {
     @Override
     public void registerComponents(@NonNull Context context, @NonNull Glide glide, @NonNull Registry registry) {
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
-                .readTimeout(30, TimeUnit.SECONDS)
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .writeTimeout(30, TimeUnit.SECONDS);
+                .readTimeout(60, TimeUnit.SECONDS)      // Increased for VPN compatibility
+                .connectTimeout(60, TimeUnit.SECONDS)   // Increased for VPN compatibility
+                .writeTimeout(60, TimeUnit.SECONDS)     // Increased for VPN compatibility
+                .retryOnConnectionFailure(true);        // Enable retry for VPN connection issues
         SharedPreferences mProxySharedPreferences = context.getSharedPreferences(SharedPreferencesUtils.PROXY_SHARED_PREFERENCES_FILE, Context.MODE_PRIVATE);
         boolean proxyEnabled = mProxySharedPreferences.getBoolean(SharedPreferencesUtils.PROXY_ENABLED, false);
         if (proxyEnabled) {
